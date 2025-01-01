@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tombola & Bingo Manager</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #FFC107;
+            --success-color: #4CAF50;
+            --error-color: #f44336;
+            --text-color: #333;
+            --background-color: #f5f5f5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .menu {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .tabella {
+            display: inline-block;
+            margin: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid #333;
+        }
+
+        .griglia {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .cella {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            background-color: white;
+            font-size: 14px;
+        }
+
+        .cella.empty {
+            border: none;
+            background-color: transparent;
+        }
+
+        .cella.selected {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .codice-seriale {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .codice-copy {
+            cursor: pointer;
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .codice-copy:hover {
+            background-color: #1976D2;
+        }
+
+        .codice-copy.copied {
+            background-color: var(--success-color);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .error {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        #menuCreazione {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .menu {
+                flex-direction: column;
+            }
+
+            .cella {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+            .tabella {
+                margin: 5px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Tombola & Bingo Manager</h1>
+        </header>
+
+        <div class="menu">
+            <button class="btn btn-primary" onclick="showSection('gioca')">Gioca</button>
+            <button class="btn btn-secondary" onclick="showSection('crea')">Crea</button>
+        </div>
+
+        <div id="gioca" class="section">
+            <h2>Modalità Gioca</h2>
+            <div class="form-group">
+                <label for="codiceSeriale">Inserisci il codice seriale:</label>
+                <input type="text" id="codiceSeriale" placeholder="Inserisci il codice">
+                <button class="btn btn-primary" onclick="caricaTabelle()">Carica Tabelle</button>
+            </div>
+            <div id="tabelleGioco"></div>
+        </div>
+
+        <div id="crea" class="section">
+            <h2>Modalità Crea</h2>
+            <div id="passwordForm" class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Inserisci la password">
+            </div>
+
+            <div id="menuCreazione">
+                <div class="form-group">
+                    <label for="tipoGioco">Tipo di gioco:</label>
+                    <select id="tipoGioco" class="form-control">
+                        <option value="tombola">Tombola</option>
+                        <option value="bingo">Bingo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="numTabelle">Numero di tabelle (1-6):</label>
+                    <input type="number" id="numTabelle" min="1" max="6" value="1">
+                </div>
+                <button class="btn btn-primary" onclick="creaTabelle()">Genera Tabelle</button>
+            </div>
+            
+            <div id="tabelleCreaate"></div>
+        </div>
+    </div>
+
+    <script>
+        // Gestore dello storage dei dati
+        class StorageManager {
+            constructor() {
+                this.storageKey = 'tombolaBingoData';
+                this.loadData();
+            }
+
+            loadData() {
+                const savedData = localStorage.getItem(this.storageKey);
+                this.data = savedData ? JSON.parse(savedData) : {};
+            }
+
+            saveData() {
+                localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+            }
+
+            addTabelle(codice, dati) {
+                this.data[codice] = {
+                    ...dati,
+                    createdAt: new Date().toISOString()
+                };
+                this.saveData();
+            }
+
+            getTabelle(codice) {
+                return this.data[codice];
+            }
+
+            clearOldData() {
+                const now = new Date();
+                const oneMonthAgo = new Date(now.setMonth(now.getMonth() - 1));
+                
+                Object.entries(this.data).forEach(([codice, dati]) => {
+                    const dataCreazione = new Date(dati.createdAt);
+                    if (dataCreazione < oneMonthAgo) {
+                        delete this.data[codice];
+                    }
+                });
+                
+                this.saveData();
+            }
+        }
+
+        // Inizializzazione
+        const storageManager = new StorageManager();
+        storageManager.clearOldData();
+
+        // Gestione sezioni
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        // Gestione password
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verificaPassword();
+            }
+        });
+
+        function verificaPassword() {
+            const password = document.getElementById('password').value;
+            if (password === 'password') {
+                document.getElementById('passwordForm').style.display = 'none';
+                document.getElementById('menuCreazione').style.display = 'block';
+            } else {
+                showMessage('Password non valida!', 'error');
+            }
+        }
+
+        // Generazione codice seriale
+        function generateSerialCode() {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substring(2, 5);
+            return (timestamp + random).toUpperCase();
+        }
+
+        // Copia codice negli appunti
+        function copyCodice(codice) {
+            navigator.clipboard.writeText(codice).then(() => {
+                const btn = document.querySelector('.codice-copy');
+                btn.classList.add('copied');
+                btn.textContent = 'Copiato!';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.textContent = 'Copia';
+                }, 2000);
+            });
+        }
+
+        // Generazione numeri casuali
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Creazione griglia bingo
+        function creaGrigliaBingo() {
+            const griglia = Array(3).fill().map(() => Array(10).fill(null));
+            const numeriUsati = new Set();
+            const numeriPerRiga = 5;
+
+            for (let riga = 0; riga < 3; riga++) {
+                let numeriInseriti = 0;
+                while (numeriInseriti < numeriPerRiga) {
+                    const colonna = Math.floor(Math.random() * 10);
+                    const minNum = colonna * 10;
+                    const maxNum = colonna * 10 + 9;
+                    const numero = getRandomNumber(minNum, maxNum);
+
+                    if (!numeriUsati.has(numero) && griglia[riga][colonna] === null) {
+                        griglia[riga][colonna] = numero;
+                        numeriUsati.add(numero);
+                        numeriInseriti++;
+                    }
+                }
+            }
+
+            return griglia;
+        }
+
+        // Creazione tabelle
+        function creaTabelle() {
+            const tipoGioco = document.getElementById('tipoGioco').value;
+            const numTabelle = parseInt(document.getElementById('numTabelle').value);
+            
+            if (numTabelle < 1 || numTabelle > 6) {
+                showMessage('Numero di tabelle non valido!', 'error');
+                return;
+            }
+
+            const codiceSeriale = generateSerialCode();
+            const tabelle = [];
+
+            for (let t = 0; t < numTabelle; t++) {
+                tabelle.push(creaGrigliaBingo());
+            }
+
+            storageManager.addTabelle(codiceSeriale, {
+                tipo: tipoGioco,
+                tabelle: tabelle
+            });
+
+            document.getElementById('menuCreazione').style.display = 'none';
+            mostraTabelle(tabelle, 'tabelleCreaate', true, codiceSeriale);
+        }
+
+        // Caricamento tabelle
+        function caricaTabelle() {
+            const codice = document.getElementById('codiceSeriale').value.toUpperCase();
+            const dati = storageManager.getTabelle(codice);
+
+            if (!dati) {
+                showMessage('Codice seriale non valido!', 'error');
+                return;
+            }
+
+            mostraTabelle(dati.tabelle, 'tabelleGioco', false);
+        }
+
+        // Visualizzazione tabelle
+        function mostraTabelle(tabelle, containerId, readonly, codiceSeriale = null) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (codiceSeriale) {
+                const codiceDiv = document.createElement('div');
+                codiceDiv.className = 'codice-seriale';
+                codiceDiv.innerHTML = `
+                    <span>Codice Seriale: ${codiceSeriale}</span>
+                    <button class="codice-copy" onclick="copyCodice('${codiceSeriale}')">Copia</button>
+                `;
+                container.appendChild(codiceDiv);
+            }
+
+            tabelle.forEach((tabella, index) => {
+                const tabellaDiv = document.createElement('div');
+                tabellaDiv.className = 'tabella';
+                tabellaDiv.innerHTML = `<h3>Tabella ${index + 1}</h3>`;
+
+                const grigliaCelle = document.createElement('div');
+                grigliaCelle.className = 'griglia';
+
+                tabella.forEach(riga => {
+                    riga.forEach(numero => {
+                        const cella = document.createElement('div');
+                        cella.className = numero === null ? 'cella empty' : 'cella';
+                        if (numero !== null) {
+                            cella.textContent = numero;
+                            if (!readonly) {
+                                cella.onclick = function() {
+                                    this.classList.toggle('selected');
+                                    checkVittoria(tabellaDiv);
+                                };
+                            }
+                        }
+                        grigliaCelle.appendChild(cella);
+                    });
+                });
+
+                tabellaDiv.appendChild(grigliaCelle);
+                container.appendChild(tabellaDiv);
+            });
+        }
+
+        // Controllo vittoria
+        function checkVittoria(tabella) {
+            const celle = tabella.querySelectorAll('.cella:not(.empty)');
+            const tutteSelezionate = Array.from(celle).every(cella => 
+                cella.classList.contains('selected')
+            );
+            
+            if (tutteSelezionate) {
+                showMessage('TOMBOLA!', 'success');
+                playVittoriaSound();
+            }
+        }
+
+        // Riproduzione suono vittoria
+        function playVittoriaSound() {
+            const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAEAAABVgANTU1NTU1Q0NDQ0NDUFBQUFBQXl5eXl5ea2tra2tra3l5eXl5eYaGhoaGhpSUlJSUlKGhoaGhoaGvr6+vr6+8vLy8vLzKysrKysrY2NjY2Njm5ubm5ub39/f39/f///////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAABVjMmLsL/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxLEAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
+            audio.play().catch(e => console.log('Audio play failed:', e));
+        }
+
+        // Visualizzazione messaggi
+        function showMessage(text, type) {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(message, container.firstChild);
+
+            setTimeout(() => message.remove(), 5000);
+        }
+
+        // Inizializzazione della pagina
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection('gioca');
+            
+            // Gestione tasto Invio nel campo codice
+            document.getElementById('codiceSeriale').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    caricaTabelle();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
